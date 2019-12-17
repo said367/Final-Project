@@ -5,36 +5,141 @@ due date: "12/17/2019"
 output: html_notebook
 ---
 
-```{r setup, include=FALSE}
+```{r}
+#loading all the required packages
 library(DataComputing)
+library(readr)
 library(mosaic)
+library(ggplot2)
+library(party)
 ```
 
+&nbsp;
 
-## Introduction
+### Introduction
 
 For my project, I will be using the “World Happiness Report” dataset. The World Happiness Report is a landmark survey of the state of global happiness. Since the publication of its first report, its survey methodology has remained the same: The reports are based on answers to a series of real life questions asked in the poll, varying across 6 main factors - Economy, Family support, life expectancy, freedom, generosity and absence of corruption. This is known as Cantril ladder where respondents are asked to think of a ladder, with the best possible life for them being a 10, and the worst possible life being a 0.
 
 Since its inception, multiple nations, institutions and organizations have utilized, the World Happiness Report in a variety of ways, from economic research to the legislation of public policies.
 
+&nbsp;
 
-## The Guiding Question
+### The Guiding Question
 
 The World Happiness Report has answered many real-life questions, but at the same time, there are still many questions regarding the relationships between various factors and happiness that can be explored using the World Happiness Report. One such interesting question that caught my attention is the North-South divide. The North-South divide is a socio-economic divide which proves that countries in the Global North are economically wealthier than countries in the Global South. Since the cold-war era, for “more than a generation, this North-South divide was central to the explanation of world poverty”. Hence, we want to see if such also holds true for happiness.
 
 In order to determine the North-South divide, I will be using the 2019 dataset as it is the latest dataset available to us. Similar to the datasets from previous years, the 2019 dataset has 156 unique countries listed with their overall rank and has all the values for the 6 main determining factors.
 
+&nbsp;
 
-## Data Access
+### Data Access
+&nbsp;
 
-### Importing Data
+#### Importing Data
 
 ```{r}
-data2019<-
+#loading 2019 dataset from github repo
+data2019<-readr::read_csv("https://raw.githubusercontent.com/said367/Final-Project/master/data2019.csv")
 ```
+&nbsp;
+
+#### Inspecting Data
+
+```{r}
+#summary of the dataset
+str(data2019)
+summary(data2019)
+data2019%>%sample_n(10)
+```
+&nbsp;
+
+We can see that our dataset doesn’t have the ‘Region’ attribute, which is the most important attribute in determining the North-South divide. So, in order to get the region attribute, we will have to compare our dataset to one of the past reports that have the region attribute and group the countries in our dataset into North and South based on their location.
+
+```{r}
+#loading the dataset from github repo
+data2016<-readr::read_csv("https://raw.githubusercontent.com/said367/Final-Project/master/data2016.csv")
+```
+&nbsp;
+
+Now, let's inspect the 2016 World Happiness report:
+
+```{r}
+#summary of the 2016 dataset
+str(data2016)
+summary(data2016)
+data2016%>%sample_n(10)
+```
+&nbsp;
 
 
+### Data Wrangling
+
+To group the countries into North and South, we need to divide them based on their region. To get the region attribute, we'll have to join the two datasets by matching country names. We'll only match those that are present in both the datasets. 
+```{r}
+#adding the region attribute by joining the two datasets
+WorldIndex<-data2019%>%left_join(data2016%>%select(Country,Region),by=c("Country"="Country"))
+```
+&nbsp;
+
+We now have to divide the countries into North or South based on their region.
+```{r}
+#Grouping the countries and regions that belong to North
+p1<-WorldIndex%>%filter(grepl("Europe",Region))%>%mutate(Divide='North')
+p2<-WorldIndex%>%filter(Region=='North America'|Region=='Australia and New Zealand'|Country=='Japan'|Country=='South Korea')%>%mutate(Divide='North')
+
+#Grouping all the remaining countries and regions to South
+p3<-WorldIndex%>%filter(Region!='Central and Eastern Europe',Region!='Western Europe',Region!='North America',Region!='Australia and New Zealand',Country!='Japan',Country!='South Korea')%>%mutate(Divide='South')
+
+#joining both the North and South Region datasets
+WorldIndex<-p1%>%full_join(p2)
+WorldIndex<-WorldIndex%>%full_join(p3)
+```
+&nbsp;
+
+Now let us compare the average score for happiness in both North and South countries.
+```{r}
+#Avg score based on Divide
+WorldIndex%>%group_by(Divide)%>%summarise(Average_Score=mean(Score))
+```
+&nbsp;
+
+Also, let us find the Top 10 Happiest and Saddest countries along with their Divide.
+```{r}
+#Top 10 happiest countries along with their Divide
+WorldIndex%>%select(Country,Score,Divide)%>%arrange(desc(Score))%>%head(10)
+
+#Top 10 saddest countries along with their Divide
+WorldIndex%>%select(Country,Score,Divide)%>%arrange(Score)%>%head(10)
+```
+&nbsp;
+
+### Data Visualization
+
+Additionally, we can also create a scatterplot to determine the relationship between GDP and Happiness Score and how it differs between countries in North and South region.
+
+```{r}
+WorldIndex%>%ggplot(aes(x=GDP,y=Score))+geom_line(aes(linetype=Divide))
+```
+&nbsp;
+
+We can also create a barplot that clearly shows the difference between countries in North and South region. As you can see, countries in North have high GDP and Happiness Score when compared to the countries in South.
+
+```{r}
+WorldIndex%>%ggplot(aes(x=GDP,y=Score))+geom_col()+facet_grid(~Divide)
+```
+&nbsp;
+
+Additionally, we can create a decision tree to see how the factors such as Freedom and Social Support affect a country's Happiness Score. It is clear from the decision tree below that a country with high Freedom and Social Support values have high Happiness scores than compared to those with low Freedom and Social Support scores.
+
+```{r}
+#Decision tree to see if there's a relation between Happiness score, freedom and Social support
+WorldIndex<-WorldIndex%>%na.omit()
+dt1<-party::ctree(Score~Freedom+SocialSupport,data = WorldIndex)
+plot(dt1,type='simple')
+```
+&nbsp;
 
 
+### Conclusion
 
-
+With the results above, we can conclude that the socio-economic North-South divide holds true based on Happiness too. This conclusion can be derived from the above results performed on the 2019 World Happiness Report dataset which shows that the Global North’s mean happiness score of 6.17 significantly outweigh that of the Global South’s happiness score of 5.03. Likewise, the top 10 ‘Happiest’ nations belong to the Global North where else the 10 ‘least happiest’ nations belong to the Global South.
