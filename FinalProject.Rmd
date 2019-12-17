@@ -1,0 +1,40 @@
+---
+title: "STAT 184 Final Project"
+author: "Sai Dhanush D"
+due date: "12/17/2019"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+library(DataComputing)
+library(mosaic)
+```
+
+
+## Introduction
+
+For my project, I will be using the “World Happiness Report” dataset. The World Happiness Report is a landmark survey of the state of global happiness. Since the publication of its first report, its survey methodology has remained the same: The reports are based on answers to a series of real life questions asked in the poll, varying across 6 main factors - Economy, Family support, life expectancy, freedom, generosity and absence of corruption. This is known as Cantril ladder where respondents are asked to think of a ladder, with the best possible life for them being a 10, and the worst possible life being a 0.
+
+Since its inception, multiple nations, institutions and organizations have utilized, the World Happiness Report in a variety of ways, from economic research to the legislation of public policies.
+
+
+## The Guiding Question
+
+The World Happiness Report has answered many real-life questions, but at the same time, there are still many questions regarding the relationships between various factors and happiness that can be explored using the World Happiness Report. One such interesting question that caught my attention is the North-South divide. The North-South divide is a socio-economic divide which proves that countries in the Global North are economically wealthier than countries in the Global South. Since the cold-war era, for “more than a generation, this North-South divide was central to the explanation of world poverty”. Hence, we want to see if such also holds true for happiness.
+
+In order to determine the North-South divide, I will be using the 2019 dataset as it is the latest dataset available to us. Similar to the datasets from previous years, the 2019 dataset has 156 unique countries listed with their overall rank and has all the values for the 6 main determining factors.
+
+
+## Data Access
+
+### Importing Data
+
+```{r}
+data2019<-
+```
+
+
+
+
+
+
